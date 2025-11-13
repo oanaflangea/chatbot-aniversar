@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot aniversar – echipe festive</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      margin: 0; padding: 0;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 700px; margin: 40px auto; padding: 20px;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    h1 { text-align: center; color: #ee0979; }
+    .chat {
+      height: 320px; overflow-y: auto; background: #fafafa;
+      padding: 20px; border-radius: 12px; margin-bottom: 20px;
+    }
+    .msg { margin: 10px 0; }
+    .direction {
+      background: #fff3cd; color: #856404;
+      padding: 10px; border-radius: 8px; font-style: italic;
+      animation: fadeIn 1s ease;
+    }
+    .bubble {
+      display: inline-block; background: #e0f7fa; color: #006064;
+      padding: 12px 16px; border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 6px;
+      animation: popIn 0.8s ease;
+    }
+    .final {
+      margin: 16px 0; padding: 14px;
+      border-left: 4px solid #ee0979; background: #ffe4ec;
+      border-radius: 10px; font-weight: bold; color: #c2185b;
+      text-align: center; font-size: 18px;
+      animation: bounce 1s infinite alternate;
+    }
+    .input-area {
+      display: flex; gap: 10px; margin-bottom: 10px;
+    }
+    select, button {
+      padding: 10px; border-radius: 8px; border: 1px solid #ccc;
+      font-weight: bold; cursor: pointer;
+    }
+    button {
+      background: #ff6a00; color: #fff; border: none;
+    }
+    button:hover { background: #ee0979; }
+
+    /* Animații */
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+    @keyframes popIn { from {transform:scale(0.8); opacity:0;} to {transform:scale(1); opacity:1;} }
+    @keyframes bounce { from {transform:translateY(0);} to {transform:translateY(-8px);} }
+
+    /* Confetti */
+    .confetti {
+      position: absolute; width: 10px; height: 10px;
+      background: red; top: -10px;
+      animation: fall 3s linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(400px) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 La mulți ani, domnule Secretar! 🎉</h1>
+    <div class="chat" id="chat"></div>
+    <div class="input-area">
+      <select id="directionSelect">
+        <option value="">-- Alege echipa --</option>
+        <option>Investitii</option>
+        <option>Proiecte</option>
+        <option>Urbanism</option>
+        <option>Achizitii</option>
+        <option>Juridic</option>
+	<option>Financiar</option>
+        <option>IT</option>
+      </select>
+      <button onclick="addDirection()">Trimite</button>
+    </div>
+    <button onclick="showCollectiveMessage()">Mesaj colectiv final</button>
+  </div>
+
+  <script>
+    const DESTINATAR = "domnule Secretar";
+
+    const funnyMessages = {
+      "Investitii": [
+        "Echipa Investiții îți urează să ai mai multe proiecte aprobate decât cafele băute într-o zi! ☕📊",
+        "La mulți ani din partea Echipei Investiții! Să ai bugete generoase și zero tăieri – ca un tort fără felii lipsă! 🎂"
+      ],
+      "Proiecte": [
+        "Echipa Proiecte îți dorește ca toate planurile să se transforme în realitate mai repede decât se încarcă un PDF în platforma MySMIS! 📑⚡",
+        "La mulți ani! Să ai mai multe reușite decât ședințe lungi și toate cu happy end! 🎬"
+      ],
+      "Urbanism": [
+        "Echipa Urbanism îți urează ca toate drumurile să fie asfaltate și toate planurile să se aprobe cu zâmbetul pe buze! 🚧😊",
+        "La mulți ani! Să ai mai multă ordine în documente decât în traficul din Slobozia la prima oră a dimineții! 🚗📂"
+      ],
+      "Achizitii": [
+        "Echipa Achiziții îți dorește ca toate licitațiile să fie câștigate de cei mai buni și fără contestații! 🏆📜",
+        "La mulți ani! Să ai mai multe oferte bune decât reduceri de Black Friday! 🛒💸"
+      ],
+      "Juridic": [
+        "Echipa Juridic îți urează să ai mai puține dosare decât felicitări primite astăzi! 📚🎉",
+        "La mulți ani! Să ai mai multe victorii în instanță decât cafele băute la birou! ⚖️☕"
+      ],
+ 	 "Financiar": [
+        "Echipa Financiar îți urează ca bilanțul vieții să fie mereu pe plus, iar bucuriile să depășească cheltuielile! 📚🎉",
+        "La mulți ani din partea Echipei Financiar! Să ai mai multe momente de profit sufletesc decât rapoarte contabile și să fie toate auditate de prietenie și recunoștință! ⚖️☕"
+      ],
+      "IT": [
+        "Echipa IT îți dorește să nu mai vezi niciodată mesajul 'Error 404'! La mulți ani cu parole ușor de ținut minte! 💻🔒",
+        "La mulți ani! Să ai mai multe reușite decât update-uri Windows! 🖥️✨"
+      ]
+    };
+
+    function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function addDirection() {
+      const select = document.getElementById("directionSelect");
+      const dirName = select.value;
+      if (!dirName) return;
+
+      const chat = document.getElementById("chat");
+
+      // Direcția
+      const dirDiv = document.createElement("div");
+      dirDiv.className = "msg direction";
+      dirDiv.textContent = "👉 Echipa " + dirName;
+      chat.appendChild(dirDiv);
+
+      // Mesaj haios
+      const mesaj = sample(funnyMessages[dirName]);
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "msg bubble";
+      msgDiv.textContent = mesaj;
+      chat.appendChild(msgDiv);
+
+      chat.scrollTop = chat.scrollHeight;
+      select.value = "";
+
+      // Confetti efect
+      launchConfetti(chat);
+    }
+
+    function showCollectiveMessage() {
+      const chat = document.getElementById("chat");
+      const finalDiv = document.createElement("div");
+      finalDiv.className = "final";
+      finalDiv.textContent = "🎂 La mulți ani din partea întregului Colectiv CJ Ialomița! Îți dorim ca fiecare zi să fie plină de împliniri, inspirație și bucurii. Așa cum tu aduci ordine și echilibru în munca noastră, să primești înapoi recunoștință și respect. Să ai sănătate, putere și momente frumoase alături de cei dragi ! 🎂";
+      chat.appendChild(finalDiv);
+      chat.scrollTop = chat.scrollHeight;
+      launchConfetti(chat, 30);
+    }
+
+    // Funcție confetti
+    function launchConfetti(container, count=15) {
+      for (let i=0; i<count; i++) {
+        const conf = document.createElement("div");
+        conf.className = "confetti";
+        conf.style.left = Math.random()*container.offsetWidth + "px";
+        conf.style.background = ["#ff6a00","#ee0979","#22c55e","#0b6efd"][Math.floor(Math.random()*4)];
+        container.appendChild(conf);
+        setTimeout(()=>conf.remove(),3000);
+      }
+    }
+  </script>
+</body>
+</html>
